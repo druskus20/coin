@@ -1,0 +1,34 @@
+cargo-features = ["codegen-backend"]
+
+[workspace]
+resolver = "2"
+members = [ 
+  "frontend/coin-tauri", 
+  "backend/*", 
+]
+
+[workspace.package]
+authors = [ "Pedro Burgos <druskus20@gmail.com>" ]
+categories = ["finance","expenses"]
+keywords = ["expense"]
+homepage = "https://github.com/druskus20/coin"
+repository = "https://github.com/druskus20/coin"
+license = "Apache-2.0 OR MIT"
+edition = "2021"
+rust-version = "1.77"
+
+[workspace.dependencies]
+coin-core = { path = "backend/coin-core", version = "0.1" }
+coin-tauri = { path = "frontend/coin-tauri", version = "0.1" }
+
+[profile.dev]
+opt-level = 1
+codegen-backend = "cranelift"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+
+
