@@ -31,5 +31,5 @@ name = "coin_tauri"
 path = "src/lib.rs"
 
 [[bin]]
-name = "coin_tauri"
+name = "coin-tauri"
 path = "src/main.rs"

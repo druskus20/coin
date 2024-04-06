@@ -13,7 +13,7 @@
     "distDir": "../coin-web-ui/build"
   },
   "package": {
-    "productName": "coin-ui",
+    "productName": "coin-tauri",
     "version": "0.1.0"
   },
   "tauri": {

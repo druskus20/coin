@@ -10,7 +10,7 @@ cargo tauri dev
 cargo run --bin coin-tauri
 
 # backend standalone
-cargo run --bin coin
+cargo run --bin coin-cli
 
 # web ui (svelte)
 npm --prefix frontend/coin-web-ui run dev
@@ -24,5 +24,11 @@ tauri wrapper and the coin backend libraries:
 ```bash
 cargo tauri build
 ```
+
+## Structure
+
+- `lib` contains the core libraries for coin. (TODO: support both local calls and remote (REST) backend)
+- `frontend` contains the different frontends `coin-tauri` and `coin-cli`.
+- [TODO] `backend` contains the code for the remote REST-based backend
 
 
