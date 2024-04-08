@@ -10,7 +10,7 @@ type SDb = surrealdb::Surreal<surrealdb::engine::local::Db>;
 use surrealdb::engine::local::Mem;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Expense {
+pub struct Expense {
     title: String,
     amount: u32,
     date: DateTime<Utc>,
