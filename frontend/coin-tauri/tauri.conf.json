@@ -3,14 +3,14 @@
   "build": {
     "beforeDevCommand": {
       "script": "npm run dev",
-      "cwd": "./coin-web-ui/"
+      "cwd": "../coin-web/"
     },
     "beforeBuildCommand": {
       "script": "npm run build",
-      "cwd": "./coin-web-ui/"
+      "cwd": "../coin-web/"
     },
     "devPath": "http://localhost:8080",
-    "distDir": "./coin-web-ui/build"
+    "distDir": "../coin-web/build"
   },
   "package": {
     "productName": "coin-tauri",
