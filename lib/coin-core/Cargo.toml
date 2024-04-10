@@ -18,7 +18,7 @@ serde_json.workspace = true
 surrealdb.workspace = true
 chrono.workspace = true
 wasm-bindgen.workspace = true
-#wasm-bindgen-futures.workspace = true
+wasm-bindgen-futures.workspace = true
 web-sys.workspace = true
 
 [lib]

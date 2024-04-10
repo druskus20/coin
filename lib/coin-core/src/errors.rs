@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+use wasm_bindgen::{JsError, JsValue};
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Error, Debug)]

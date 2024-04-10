@@ -11,9 +11,9 @@ use surrealdb::engine::local::Mem;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Expense {
-    title: String,
-    amount: u32,
-    date: DateTime<Utc>,
+    pub title: String,
+    pub amount: u32,
+    pub date: DateTime<Utc>,
 }
 
 pub(super) struct Db {

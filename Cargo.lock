@@ -734,6 +734,7 @@ dependencies = [
  "surrealdb",
  "thiserror",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
 ]
 
