@@ -35,3 +35,13 @@ web-sys = { version = "0.3.69", features = ['console'] }
 [profile.dev]
 opt-level = 1
 
+[profile.release]
+opt-level = "z"
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.release.package.wry]
+debug = true
+debug-assertions = true

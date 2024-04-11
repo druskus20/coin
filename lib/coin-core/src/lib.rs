@@ -1,9 +1,7 @@
 mod db;
-mod errors;
+pub mod errors;
 
 use errors::Result;
-use wasm_bindgen::{prelude::wasm_bindgen, JsError};
-use web_sys::console;
 
 pub struct Coin {
     db: db::Db,
@@ -24,16 +22,4 @@ impl Coin {
         let expenses = self.db.get_expenses().await?;
         Ok(expenses)
     }
-}
-
-#[wasm_bindgen]
-pub async fn run() -> std::result::Result<(), JsError> {
-    let coin = Coin::try_new().await?;
-    coin.add_expense(10).await?;
-    coin.add_expense(20).await?;
-    let expenses = coin.get_expenses().await?;
-    for expense in expenses {
-        console::log_1(&format!("Expense: {}", expense.amount).into());
-    }
-    Ok(())
 }
