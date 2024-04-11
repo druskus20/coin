@@ -1,5 +1,4 @@
-cargo-features = ["codegen-backend"]
-
+cargo-features = ["codegen-backend", "per-package-target"]
 
 [package]
 name = "coin-cli"
@@ -13,6 +12,8 @@ license = "Apache-2.0 OR MIT"
 edition = "2021"
 rust-version = "1.77"
 
+#default-target = "wasm32-unknown-unknown"
+default-target = "x86_64-unknown-linux-gnu"
 [dependencies]
 coin-core.workspace = true
 # We can use the rt-multi-thread feature since we are compiling natively

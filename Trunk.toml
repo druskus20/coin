@@ -1,0 +1,10 @@
+[build]
+target = "./frontend/coin-web/index.html"
+
+[watch]
+ignore = ["./frontend/coin-tauri", "./frontend/coin-cli"]
+
+[serve]
+address = "127.0.0.1"
+port = 8080
+open = false

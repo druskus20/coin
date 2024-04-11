@@ -2,15 +2,15 @@
   "$schema": "../ui/node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeDevCommand": {
-      "script": "npm run dev",
-      "cwd": "../coin-web/"
+      "script": "trunk serve",
+      "cwd": "../../"
     },
     "beforeBuildCommand": {
-      "script": "npm run build",
-      "cwd": "../coin-web/"
+      "script": "trunk build",
+      "cwd": "../../"
     },
     "devPath": "http://localhost:8080",
-    "distDir": "../coin-web/build"
+    "distDir": "../coin-web/dist"
   },
   "package": {
     "productName": "coin-tauri",
