@@ -1,0 +1,26 @@
+{
+  "name": "coin-core",
+  "collaborators": [
+    "Pedro Burgos <druskus20@gmail.com>"
+  ],
+  "version": "0.1.0",
+  "license": "Apache-2.0 OR MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/druskus20/coin"
+  },
+  "files": [
+    "coin_core_bg.wasm",
+    "coin_core.js",
+    "coin_core.d.ts"
+  ],
+  "module": "coin_core.js",
+  "homepage": "https://github.com/druskus20/coin",
+  "types": "coin_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ],
+  "keywords": [
+    "expense"
+  ]
+}

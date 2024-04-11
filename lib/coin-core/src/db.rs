@@ -1,48 +1,38 @@
-use crate::errors::Error;
-use chrono::DateTime;
-use chrono::Utc;
+//use crate::errors::Error;
+//use chrono::DateTime;
+//use chrono::Utc;
 use serde::{Deserialize, Serialize};
+use surrealdb::engine::remote::ws::Ws;
+use surrealdb::opt::auth::Root;
 use surrealdb::sql::Thing;
 use surrealdb::Surreal;
 
-type SDb = surrealdb::Surreal<surrealdb::engine::local::Db>;
-
-use surrealdb::engine::local::Mem;
+type SDb = surrealdb::Surreal<surrealdb::engine::remote::ws::Ws>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Expense {
     pub title: String,
     pub amount: u32,
-    pub date: DateTime<Utc>,
 }
 
-pub(super) struct Db {
-    db: SDb,
-}
+pub(super) struct Db {}
 
-const EXPENSES_TABLE: &str = "expense";
 impl Db {
-    pub(super) async fn try_init() -> Result<Self, Error> {
-        let db = Surreal::new::<Mem>(()).await?;
-        db.use_ns("coin").use_db("coin").await?;
-        Ok(Self { db })
-    }
+    pub(super) async fn try_init() -> Self {
+        let db = Surreal::new::<Ws>("127.0.0.1:8000").await.unwrap();
 
-    pub(super) async fn add_expense(&self, amount: u32) -> surrealdb::Result<()> {
-        self.db
-            .create::<Vec<Expense>>(EXPENSES_TABLE)
-            .content(Expense {
-                title: "Test expense".into(),
-                amount,
-                date: Utc::now().into(),
-            })
-            .await?;
+        // Signin as a namespace, database, or root user
+        db.signin(Root {
+            username: "root",
+            password: "root",
+        })
+        .await
+        .unwrap();
 
-        Ok(())
-    }
+        // Select a specific namespace / database
+        db.use_ns("test").use_db("test").await.unwrap();
 
-    pub(super) async fn get_expenses(&self) -> surrealdb::Result<Vec<Expense>> {
-        let expenses: Vec<Expense> = self.db.select(EXPENSES_TABLE).await?;
-        Ok(expenses)
+        db.use_ns("coin").use_db("coin").await.unwrap();
+        Self {}
     }
 }

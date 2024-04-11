@@ -1,7 +1,7 @@
 // place files you want to import through the `$lib` alias in this fold
 //
 
-import init, { run }  from "./coin_core_wasm/coin_core.js"
+import init, { run }  from "./coin_core.js"
 //import init, { run, log_thing }  from "./pkg/surreal_to_wasm_test.js";
 export async function init_and_run() {
   await init();
