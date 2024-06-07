@@ -17,6 +17,18 @@ pub enum DeviceFlowError {
     // thus we do not use #[from] here
     #[error("Could not deserialize response")]
     DeserializationError(String),
+    #[error("Device flow disabled")]
+    DeviceFlowDisabled,
+    #[error("Incorrect client credentials")]
+    IncorrectClientCredentials,
+    #[error("Incorrect device code")]
+    IncorrectDeviceCode,
+    #[error("Access denied")]
+    AccessDenied,
+    #[error("Unsupported grant type")]
+    UnsupportedGrantType,
+    #[error("Refresh token not found")]
+    RefreshTokenNotFound,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -73,6 +85,7 @@ enum GithubAPIErrorVariant {
     DeviceFlowDisabled,
 }
 
+#[derive(Debug, Clone)]
 pub struct DeviceFlow {
     client_id: String,
     host: String,
@@ -88,24 +101,30 @@ impl DeviceFlow {
         }
     }
 
-    pub async fn run(&self) -> Result<Credentials, DeviceFlowError> {
-        let vp = self.request_verification_params().await?;
+    pub async fn auth(
+        &self,
+        retrive_refresh_token: impl FnOnce() -> Result<String, DeviceFlowError>,
+    ) -> Result<Credentials, DeviceFlowError> {
+        let vp = self.request_verification().await?;
 
-        eprintln!("Please visit {} in your browser", vp.verification_uri);
-        eprintln!("And enter code: {}", vp.user_code);
+        eprintln!("Please enter the code: {}", vp.user_code);
+        eprintln!("At the following URL in your browser:");
+        eprintln!("{}", vp.verification_uri);
 
         let res = self
-            .poll_access_token(&vp, vp.expires_in, vp.interval)
+            .request_authorize(&vp, vp.expires_in, vp.interval)
             .await;
 
         if let Err(DeviceFlowError::ExpiredAccessTokenError) = res {
-            return self.request_refresh().await;
+            let refresh_token = retrive_refresh_token()?;
+            self.request_refresh(refresh_token.to_string(), vp.expires_in, vp.interval)
+                .await
         } else {
-            return res;
+            res
         }
     }
 
-    async fn request_verification_params(&self) -> Result<VerificationParams, DeviceFlowError> {
+    async fn request_verification(&self) -> Result<VerificationParams, DeviceFlowError> {
         // TODO use serde to build request body
         let r = send_request(
             format!("https:/{}/login/device/code", self.host),
@@ -113,28 +132,23 @@ impl DeviceFlow {
         )
         .await?;
 
-        {
-            use GithubAPIErrorVariant::*;
-            use GithubAPIResponse::*;
-            let vp_result = match r {
-                VerificationParams(vp) => Ok(vp),
-                ErrorResponse(e) => match e.variant {
-                    AuthorizationPending => todo!(),
-                    SlowDown => todo!(),
-                    ExpiredToken => todo!(),
-                    UnsupportedGrantType => todo!(),
-                    IncorrectClientCredentials => todo!(),
-                    IncorrectDeviceCode => todo!(),
-                    AccessDenied => todo!(),
-                    DeviceFlowDisabled => todo!(),
-                },
-                _ => unimplemented!(),
-            };
-            vp_result
-        }
+        use GithubAPIErrorVariant::*;
+        use GithubAPIResponse::*;
+        let vp_result = match r {
+            VerificationParams(vp) => Ok(vp),
+            ErrorResponse(e) => match e.variant {
+                IncorrectClientCredentials => {
+                    return Err(DeviceFlowError::IncorrectClientCredentials)
+                }
+                DeviceFlowDisabled => return Err(DeviceFlowError::DeviceFlowDisabled),
+                _ => unreachable!("This should never be returned by the API"),
+            },
+            Credentials(_) => unreachable!("This should never be returned by the API"),
+        };
+        vp_result
     }
 
-    async fn poll_access_token(
+    async fn request_authorize(
         &self,
         vp: &VerificationParams,
         expires_in: u64,
@@ -145,42 +159,21 @@ impl DeviceFlow {
             "client_id={}&device_code={}&grant_type=urn:ietf:params:oauth:grant-type:device_code",
             self.client_id, vp.device_code
         );
-
-        /*
-         * Do not poll this endpoint at a higher frequency than the frequency indicated by interval. If
-         * you do, you will hit the rate limit and receive a slow_down error. The slow_down error
-         * response adds 5 seconds to the last interval.
-         */
-        let mut interval = interval;
-
-        let time_start = std::time::Instant::now();
-        while time_start.elapsed().as_secs() < expires_in {
-            let r = send_request(&request_url, request_body.clone()).await?;
-            {
-                use GithubAPIErrorVariant::*;
-                use GithubAPIResponse::*;
-                match r {
-                    Credentials(credentials) => return Ok(credentials),
-                    ErrorResponse(er) => match er.variant {
-                        AuthorizationPending => time::sleep(Duration::from_secs(interval)).await,
-                        SlowDown => interval += 5,
-                        ExpiredToken => return Err(DeviceFlowError::ExpiredAccessTokenError),
-                        UnsupportedGrantType => todo!(),
-                        IncorrectClientCredentials => todo!(),
-                        IncorrectDeviceCode => todo!(),
-                        AccessDenied => todo!(),
-                        DeviceFlowDisabled => todo!(),
-                    },
-                    VerificationParams(_) => unreachable!(),
-                }
-            }
-        }
-
-        Err(DeviceFlowError::AuthRequestExpired)
+        poll_token_response(request_url, request_body, expires_in, interval).await
     }
 
-    async fn request_refresh(&self) -> Result<Credentials, DeviceFlowError> {
-        todo!()
+    async fn request_refresh(
+        &self,
+        refresh_token: String,
+        expires_in: u64,
+        interval: u64,
+    ) -> Result<Credentials, DeviceFlowError> {
+        let request_url = format!("https:/{}/login/oauth/access_token", self.host);
+        let request_body = format!(
+            "client_id={}&grant-type:refresh_token&refresh_token={}",
+            self.client_id, refresh_token,
+        );
+        poll_token_response(request_url, request_body, expires_in, interval).await
     }
 }
 
@@ -197,7 +190,8 @@ async fn send_request(
         .await?
         .error_for_status()?;
 
-    // We first try to deserialize to a [`GithubApiResponse`] enum
+    // Try to deserialize to a [`GithubApiResponse`] enum if that fails, dump the response body as
+    // a string in the error message
     let body_bytes = response.bytes().await?;
     if let Ok(body) = serde_json::from_slice::<GithubAPIResponse>(&body_bytes) {
         return Ok(body);
@@ -205,6 +199,46 @@ async fn send_request(
         let bytes_as_string: String = String::from_utf8_lossy(&body_bytes).to_string();
         return Err(DeviceFlowError::DeserializationError(bytes_as_string));
     }
+}
+
+async fn poll_token_response(
+    request_url: String,
+    request_body: String,
+    expires_in: u64,
+    interval: u64,
+) -> Result<Credentials, DeviceFlowError> {
+    /*
+     * Do not poll this endpoint at a higher frequency than the frequency indicated by interval. If
+     * you do, you will hit the rate limit and receive a slow_down error. The slow_down error
+     * response adds 5 seconds to the last interval.
+     */
+    let mut interval = interval;
+
+    let time_start = std::time::Instant::now();
+    while time_start.elapsed().as_secs() < expires_in {
+        let r = send_request(&request_url, request_body.clone()).await?;
+
+        use GithubAPIErrorVariant::*;
+        use GithubAPIResponse::*;
+        match r {
+            Credentials(credentials) => return Ok(credentials),
+            ErrorResponse(er) => match er.variant {
+                AuthorizationPending => time::sleep(Duration::from_secs(interval)).await,
+                SlowDown => interval += 5,
+                ExpiredToken => return Err(DeviceFlowError::ExpiredAccessTokenError),
+                UnsupportedGrantType => return Err(DeviceFlowError::UnsupportedGrantType),
+                IncorrectClientCredentials => {
+                    return Err(DeviceFlowError::IncorrectClientCredentials)
+                }
+                IncorrectDeviceCode => return Err(DeviceFlowError::IncorrectDeviceCode),
+                AccessDenied => return Err(DeviceFlowError::AccessDenied),
+                DeviceFlowDisabled => return Err(DeviceFlowError::DeviceFlowDisabled),
+            },
+            VerificationParams(_) => unreachable!("This should never be returned by the API"),
+        }
+    }
+
+    Err(DeviceFlowError::AuthRequestExpired)
 }
 
 #[cfg(test)]
@@ -221,7 +255,7 @@ mod tests {
             "refresh_token_expires_in":15811200,
             "scope":""}"#;
 
-        let c = serde_json::from_str::<GithubAPIResponse>(payload).unwrap();
+        let _ = serde_json::from_str::<GithubAPIResponse>(payload).unwrap();
     }
 
     #[tokio::test]
@@ -234,6 +268,6 @@ mod tests {
         "interval":5
         }"#;
 
-        let c = serde_json::from_str::<GithubAPIResponse>(payload).unwrap();
+        let _ = serde_json::from_str::<GithubAPIResponse>(payload).unwrap();
     }
 }
