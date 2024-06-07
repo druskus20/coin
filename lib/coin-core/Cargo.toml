@@ -12,6 +12,14 @@ thiserror.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 web-sys.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+
+firebase-rs = { git = "https://github.com/druskus20/firebase-rs", branch = "public-errors"}
+github-device-flow = "0.2.0"
+
+#firebase-rs = { git = "https://github.com/druskus20/firebase-rs", rev = "7eb97ba5af9c228276d43ff6a77ef51df380eda8" }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
