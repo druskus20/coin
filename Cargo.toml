@@ -23,6 +23,7 @@ wasm-bindgen-futures = "0.4.42"
 web-sys = { version = "0.3.69", features = ['console'] }
 tokio = { version = "1.38"}
 
+github-device-oauth = { git = "https://github.com/druskus20/github-device-oauth", branch = "master" }
 thiserror = "1.0"
 
 # Coin 
