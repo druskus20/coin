@@ -2,20 +2,13 @@
 name = "coin-core"
 version = "0.1.0"
 authors.workspace = true
-categories.workspace = true
-keywords.workspace = true
 homepage.workspace = true
 repository.workspace = true
 license.workspace = true
 edition.workspace = true
-rust-version.workspace = true
 
 [dependencies]
 thiserror.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-surrealdb.workspace = true
-chrono.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 web-sys.workspace = true
