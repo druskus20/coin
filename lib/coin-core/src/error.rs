@@ -5,9 +5,17 @@ pub enum CoinError {
     #[error(transparent)]
     Database(#[from] DatabaseError),
     #[error(transparent)]
-    GithubAuth(#[from] GithubAuthError),
+    GithubAuth(#[from] github_device_oauth::DeviceFlowError),
+    #[error(transparent)]
+    Keyring(#[from] keyring::Error),
+    #[error("No entry found in keyring")]
+    KeyringNoEntry,
+    #[error("Credentials serialization error: {0}")]
+    CredentialsSerialization(#[from] serde_json::Error),
     #[error(transparent)]
     Environment(#[from] std::env::VarError),
+    #[error(transparent)]
+    TokioJoinError(#[from] tokio::task::JoinError),
 }
 
 #[derive(Error, Debug)]
@@ -18,10 +26,4 @@ pub enum DatabaseError {
     RequestError(#[from] firebase_rs::RequestError),
     #[error(transparent)]
     ServerEventError(#[from] firebase_rs::ServerEventError),
-}
-
-#[derive(Error, Debug)]
-pub enum GithubAuthError {
-    #[error(transparent)]
-    UrlParseError(#[from] github_device_flow::DeviceFlowError),
 }
