@@ -12,6 +12,15 @@ thiserror.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 web-sys.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+tokio.workspace = true
+
+firebase-rs = { git = "https://github.com/druskus20/firebase-rs", branch = "public-errors"}
+github-device-oauth = { git ="https://github.com/druskus20/github-device-oauth", branch = "master" }
+keyring = { version = "2.3.3", default-features = false, features = ["platform-linux", "byteorder", "linux-secret-service-rt-tokio-crypto-rust" ]}
+whoami = "1.5.1"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
