@@ -17,10 +17,12 @@ serde_json.workspace = true
 chrono.workspace = true
 tokio.workspace = true
 
-firebase-rs = { git = "https://github.com/druskus20/firebase-rs", branch = "public-errors"}
+#firebase-rs = { git = "https://github.com/druskus20/firebase-rs", branch = "public-response" }
+firestore = "0.42.0"
 github-device-oauth = { git ="https://github.com/druskus20/github-device-oauth", branch = "master" }
 keyring = { version = "2.3.3", default-features = false, features = ["platform-linux", "byteorder", "linux-secret-service-rt-tokio-crypto-rust" ]}
 whoami = "1.5.1"
+gcloud-sdk = "0.24.8"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
