@@ -23,6 +23,9 @@ github-device-oauth = { git ="https://github.com/druskus20/github-device-oauth",
 keyring = { version = "2.3.3", default-features = false, features = ["platform-linux", "byteorder", "linux-secret-service-rt-tokio-crypto-rust" ]}
 whoami = "1.5.1"
 gcloud-sdk = "0.24.8"
+firestore-db-and-auth = "0.8.0"
+reqwest = { version = "0.11", default-features = false, features = ["json", "blocking", "hyper-rustls"] }
+async-trait = "0.1"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

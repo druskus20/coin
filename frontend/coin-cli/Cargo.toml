@@ -15,3 +15,4 @@ coin-core.workspace = true
 
 # We can use the rt-multi-thread feature since we are compiling natively
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"]}
+chrono.workspace = true
