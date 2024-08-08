@@ -1,10 +1,11 @@
+use firestore_db_and_auth::FirebaseAuthBearer;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use chrono::{DateTime, Utc};
 use github_device_oauth::{Credentials, DeviceFlow};
 
-use crate::error::CoinError;
+use crate::{error::CoinError, utils::is_expired};
 use keyring::Entry;
 
 const HOST: &str = "github.com";
@@ -16,13 +17,14 @@ async fn refresh_or_authorize_github(
 ) -> Result<Credentials, CoinError> {
     #[cfg(debug_assertions)]
     match &refresh_token {
-        Some(refresh_token) => println!(
-            "Refreshing access token with refresh token {}",
-            refresh_token
-        ),
+        Some(_) => println!("Refreshing access token with refresh token"),
         None => println!("Authorizing access token"),
     }
-    let client_id = std::env::var("COIN_GITHUB_CLIENT_ID")?;
+    let client_id =
+        std::env::var("COIN_GITHUB_CLIENT_ID").map_err(|err| CoinError::Environment {
+            source: err,
+            key: "COIN_GITHUB_CLIENT_ID".to_string(),
+        })?;
     Ok(
         DeviceFlow::new(client_id, HOST.to_string(), SCOPES.to_string())
             .refresh_or_authorize(refresh_token)
@@ -61,48 +63,35 @@ async fn read_credentials_keyring() -> Result<Credentials, CoinError> {
 }
 
 #[derive(Debug, Clone)]
-pub struct CredentialsManager {
+pub(crate) struct OAuthManager {
     credentials: Arc<Mutex<Credentials>>,
 }
 
-impl CredentialsManager {
+impl OAuthManager {
     pub fn arc_clone(&self) -> Arc<Self> {
         Arc::new(self.clone())
     }
 
     pub async fn try_init_with_github() -> Result<Self, CoinError> {
         let credentials = match read_credentials_keyring().await {
+            //Ok(credentials) => refresh_or_authorize_github(Some(credentials.refresh_token)).await?,
             Ok(credentials) => refresh_or_authorize_github(Some(credentials.refresh_token)).await?,
             Err(CoinError::KeyringNoEntry) => refresh_or_authorize_github(None).await?,
             Err(err) => return Err(err),
         };
         store_credentials_keyring(credentials.clone()).await?;
-        Ok(CredentialsManager {
+        Ok(OAuthManager {
             credentials: Arc::new(Mutex::new(credentials)),
         })
     }
 
-    pub async fn access_token_or_refresh(&self) -> Result<(String, DateTime<Utc>), CoinError> {
+    pub async fn access_token_or_refresh(&self) -> Result<String, CoinError> {
         let mut credentials = self.credentials.lock().await;
-        if is_expired(&credentials) {
+        if is_expired(credentials.timestamp, credentials.expires_in) {
             let new_credentials = refresh_or_authorize_github(None).await?;
             *credentials = new_credentials.clone();
             store_credentials_keyring(new_credentials).await?;
         }
-        let expiration = expiration_datetime(&credentials)?;
-        Ok((credentials.access_token.clone(), expiration))
+        Ok(credentials.access_token.clone())
     }
-}
-
-const EXPIRATION_MARGIN: i64 = 120;
-fn expiration_datetime(credentials: &Credentials) -> Result<DateTime<Utc>, CoinError> {
-    let ts = credentials.timestamp as i64;
-    let expires_in = credentials.expires_in as i64;
-    DateTime::from_timestamp(ts + expires_in, 0).ok_or(CoinError::InvalidTimestamp)
-}
-fn is_expired(credentials: &Credentials) -> bool {
-    let ts = credentials.timestamp as i64;
-    let expires_in = credentials.expires_in as i64;
-    let now = chrono::Utc::now().timestamp();
-    ts + expires_in < now + EXPIRATION_MARGIN
 }

@@ -1,15 +1,19 @@
+use serde::{Deserialize, Serialize};
+
 use crate::currency::Currency;
 use crate::DateTime;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Expense {
     pub id: i32,
     pub name: String,
     pub desc: String,
     pub datetime: DateTime,
     pub category: String,
-    pub cost: Amount,
+    pub amount: Amount,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Amount {
     pub id: i32,
     pub datetime: DateTime,

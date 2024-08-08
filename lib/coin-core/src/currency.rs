@@ -1,10 +1,13 @@
 use crate::DateTime;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExchangeRatesFromBase {
     pub datetime: DateTime,
     pub base: Currency,
     pub rates: ExchangeRatesTo,
 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExchangeRatesToBase {
     pub datetime: DateTime,
     pub base: Currency,
@@ -12,6 +15,7 @@ pub struct ExchangeRatesToBase {
     pub rates_from: ExchangeRatesFrom,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExchangeRatesTo {
     pub target: Currency, // Euro
     pub eur: f64,
@@ -47,6 +51,7 @@ pub struct ExchangeRatesTo {
     pub zar_to_target: f64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExchangeRatesFrom {
     pub source: Currency, // Euro
     pub eur: f64,
@@ -82,6 +87,7 @@ pub struct ExchangeRatesFrom {
     pub base_to_zar: f64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Currency {
     AUD,
     BGN,

@@ -12,12 +12,19 @@ pub enum CoinError {
     KeyringNoEntry,
     #[error("Credentials serialization error: {0}")]
     CredentialsSerialization(#[from] serde_json::Error),
-    #[error("Environment variable not found error: {0}")]
-    Environment(#[from] std::env::VarError),
+    #[error("Environment variable error: {key}")]
+    Environment {
+        source: std::env::VarError,
+        key: String,
+    },
     #[error(transparent)]
     TokioJoinError(#[from] tokio::task::JoinError),
     #[error("Invalid timestamp")]
     InvalidTimestamp,
+    #[error("Firestore error: {0}")]
+    FirestoreError(#[from] firestore::errors::FirestoreError),
+    #[error("Request error: {0}")]
+    RequestError(#[from] reqwest::Error),
 }
 
 #[derive(Error, Debug)]
@@ -26,4 +33,11 @@ pub enum DatabaseError {
     FirestoreError(#[from] firestore::errors::FirestoreError),
     #[error(transparent)]
     GCDError(#[from] gcloud_sdk::error::Error),
+    #[error("Sign in error")]
+    SignInError {
+        code: Option<i32>,
+        message: Option<String>,
+    },
+    #[error("Unknown")]
+    UnknownError,
 }

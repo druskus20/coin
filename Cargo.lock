@@ -406,6 +406,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
+name = "biscuit"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e28fc7c56c61743a01d0d1b73e4fed68b8a4f032ea3a2d4bb8c6520a33fc05a"
+dependencies = [
+ "chrono",
+ "data-encoding",
+ "num-bigint",
+ "num-traits",
+ "once_cell",
+ "ring",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -508,6 +524,12 @@ name = "bytes"
 version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "514de17de45fdb8dc022b1a7975556c53c86f9f0aa5f534b98977b171857c2c9"
+
+[[package]]
+name = "cache_control"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1bf2a5fb3207c12b5d208ebc145f967fea5cac41a021c37417ccc31ba40f39ee"
 
 [[package]]
 name = "cairo-rs"
@@ -659,6 +681,7 @@ dependencies = [
 name = "coin-cli"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "coin-core",
  "tokio",
 ]
@@ -667,11 +690,14 @@ dependencies = [
 name = "coin-core"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "chrono",
  "firestore",
+ "firestore-db-and-auth",
  "gcloud-sdk",
  "github-device-oauth",
  "keyring",
+ "reqwest 0.11.27",
  "serde",
  "serde_json",
  "thiserror",
@@ -907,6 +933,12 @@ dependencies = [
  "quote",
  "syn 2.0.67",
 ]
+
+[[package]]
+name = "data-encoding"
+version = "2.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
 name = "deranged"
@@ -1178,6 +1210,28 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tracing",
+]
+
+[[package]]
+name = "firestore-db-and-auth"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fabcf0cbd18cacadcd708cd74c36b73d85329052b382a028e79fe61c369f709"
+dependencies = [
+ "async-trait",
+ "base64 0.21.7",
+ "biscuit",
+ "bytes",
+ "cache_control",
+ "chrono",
+ "futures",
+ "http 1.1.0",
+ "pin-project 1.1.5",
+ "reqwest 0.11.27",
+ "ring",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -3432,6 +3486,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "wasm-streams",
  "web-sys",
+ "webpki-roots",
  "winreg 0.50.0",
 ]
 
@@ -5218,6 +5273,12 @@ dependencies = [
  "soup2-sys",
  "system-deps 6.2.2",
 ]
+
+[[package]]
+name = "webpki-roots"
+version = "0.25.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f20c57d8d7db6d3b86154206ae5d8fba62dd39573114de97c2cb0578251f8e1"
 
 [[package]]
 name = "webview2-com"
