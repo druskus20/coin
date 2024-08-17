@@ -2,6 +2,8 @@ use coin_core::{
     currency::Currency,
     expense::{Amount, Expense},
 };
+use tracing::info;
+use tracing_subscriber;
 
 pub fn create_test_expense() -> Expense {
     Expense {
@@ -23,6 +25,8 @@ pub fn create_test_expense() -> Expense {
 
 #[tokio::main]
 async fn main() -> Result<(), coin_core::error::CoinError> {
+    tracing_subscriber::fmt::init();
+    info!("Starting coin-cli");
     let r = coin_core::init().await?;
     let e = create_test_expense();
     coin_core::add_expense(&r, e).await?;

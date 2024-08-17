@@ -1,3 +1,4 @@
+use db::Db;
 use expense::Expense;
 use firestore::FirestoreDb;
 use serde::{Deserialize, Serialize};
@@ -19,24 +20,20 @@ struct TestRecord {
     value: f64,
 }
 
-pub async fn init() -> Result<FirestoreDb, error::CoinError> {
-    let cm = oauth::OAuthManager::try_init_with_github().await?;
-    let project_id = &std::env::var("COIN_FIRESTORE_PROJECT_ID").map_err(|err| {
-        error::CoinError::Environment {
-            source: err,
-            key: "COIN_FIRESTORE_PROJECT_ID".to_string(),
-        }
-    })?;
-    let db = db::try_new(&cm, project_id.clone()).await?;
-    dbg!(&db);
+#[tracing::instrument]
+pub async fn init() -> Result<Db, error::CoinError> {
+    let cm = oauth::OAuthManager::try_init_github_google().await?;
+    let project_id = utils::env_var("COIN_FIRESTORE_PROJECT_ID")?;
+    let db = Db::try_new(&cm, project_id.clone()).await?;
     Ok(db)
 }
 
-pub async fn add_expense(db: &FirestoreDb, expense: Expense) -> Result<(), error::CoinError> {
+pub async fn add_expense(db: &Db, expense: Expense) -> Result<(), error::CoinError> {
     let _ = db
+        .firestore_db
         .fluent()
         .insert()
-        .into(EXPENSE_COLLECTION_NAME)
+        .into(format!("{}/EXPENSE_COLLECTION_NAME", db.user_id).as_str())
         .document_id(&expense.id.to_string())
         .object(&expense)
         .execute()

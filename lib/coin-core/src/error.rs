@@ -35,7 +35,7 @@ pub enum DatabaseError {
     GCDError(#[from] gcloud_sdk::error::Error),
     #[error("Sign in error")]
     SignInError {
-        code: Option<i32>,
+        code: Option<u64>,
         message: Option<String>,
     },
     #[error("Unknown")]

@@ -16,6 +16,7 @@ serde.workspace = true
 serde_json.workspace = true
 chrono.workspace = true
 tokio.workspace = true
+tracing.workspace = true
 
 #firebase-rs = { git = "https://github.com/druskus20/firebase-rs", branch = "public-response" }
 firestore = "0.42.0"
